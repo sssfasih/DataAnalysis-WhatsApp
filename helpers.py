@@ -49,4 +49,4 @@ def fetch_stats(selected_user, df):
 
 
 
-    return num_messages, words,num_media
+    return num_messages, words

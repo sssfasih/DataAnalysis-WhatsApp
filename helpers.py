@@ -1,5 +1,6 @@
 import re
 import pandas as pd
+from urlextract import URLExtract
 
 def segregate_messages(df):
     users = []
@@ -47,6 +48,12 @@ def fetch_stats(selected_user, df):
     for message in df['message']:
         words.extend(message.split())
 
+    num_media = df[df['message'] == '<Media omitted>\n'].shape[0]
+
+    links = []
+    extractor = URLExtract()
+    for i in df['message']:
+        links.extend(extractor.find_urls(i))
 
 
-    return num_messages, words
+    return num_messages, words,num_media,links

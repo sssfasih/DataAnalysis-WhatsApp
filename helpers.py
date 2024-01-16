@@ -14,7 +14,7 @@ def segregate_messages(df):
             messages.append(entry[0])
     return users,messages
 
-def abc():
+def preprocessor(data):
     pattern = '\d{1,2}\/\d{1,2}\/\d{2},\s\d{1,2}:\d{2}\s(?:AM|PM)'
     messages = re.split(pattern, data)[1:]
     dates = re.findall(pattern, data)
@@ -33,3 +33,20 @@ def abc():
     df['minute'] = df['date'].dt.minute
 
     return df
+
+def fetch_stats(selected_user, df):
+
+    if selected_user != 'Overall':
+        df = df[df['user'] == selected_user]
+
+    # fetch the number of messages
+    num_messages = df.shape[0]
+
+    # fetch the total number of words
+    words = []
+    for message in df['message']:
+        words.extend(message.split())
+
+
+
+    return num_messages, words,num_media

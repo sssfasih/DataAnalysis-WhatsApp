@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st
 import helpers
 from matplotlib import pyplot as plt
+import seaborn as sns
 
 st.sidebar.title("Whatsapp Data Analysis")
 
@@ -24,8 +25,6 @@ if uploaded_file is not None:
     if st.sidebar.button("Show analysis"):
         num_messages, words,num_media,urls = helpers.fetch_stats(selected_user, df)
         st.title("Top Statistics")
-
-        st.dataframe(df)
         col1, col2, col3, col4 = st.columns(4)
         with col1:
             st.header("Total Messages")
@@ -77,6 +76,12 @@ if uploaded_file is not None:
             plt.xticks(rotation='vertical')
             st.pyplot(fig)
 
+        st.title("Weekly Activity Map")
+        fig, axis = plt.subplots()
+        heatmap = sns.heatmap(helpers.activity_heatmap(selected_user, df))
+        axis = heatmap
+        st.pyplot(fig)
+
         if selected_user == "Overall":
             col1, col2, = st.columns(2)
             most_active,users_activity = helpers.get_activity(df)
@@ -90,9 +95,6 @@ if uploaded_file is not None:
             with col2:
                 st.header("Users Activity")
                 st.dataframe(users_activity)
-        # Activity Heatmap
-
-
 
         df_wc = helpers.create_wordcloud(selected_user,df)
         fig, axis = plt.subplots()
@@ -100,7 +102,6 @@ if uploaded_file is not None:
         st.pyplot(fig)
 
         # most common list
-
         common_words = helpers.most_common_words(selected_user, df)
         common_words = pd.DataFrame(common_words)
         fig, axis = plt.subplots()

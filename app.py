@@ -4,7 +4,9 @@ import helpers
 from matplotlib import pyplot as plt
 import seaborn as sns
 
-st.sidebar.title("Whatsapp Data Analysis")
+st.sidebar.title("Whatsapp Data Analytics")
+st.sidebar.subheader('Syed Fasih Uddin (sssfasih@gmail.com)')
+st.sidebar.markdown("**Follow me on:** [LinkedIn](https://www.linkedin.com/in/sssfasih/) and [GitHub](https://www.github.com/sssfasih/)")
 
 uploaded_file = st.sidebar.file_uploader("Upload Chat File")
 if uploaded_file is not None:
@@ -24,7 +26,7 @@ if uploaded_file is not None:
 
     if st.sidebar.button("Show analysis"):
         num_messages, words,num_media,urls = helpers.fetch_stats(selected_user, df)
-        st.title("Top Statistics")
+        st.title("Top Numbers")
         col1, col2, col3, col4 = st.columns(4)
         with col1:
             st.header("Total Messages")
@@ -36,7 +38,7 @@ if uploaded_file is not None:
             st.header("Media Messages")
             st.title(num_media)
         with col4:
-            st.header("URLs Sent")
+            st.header("URLs Shared")
             st.title(len(urls))
 
         st.title("Top Statistics")

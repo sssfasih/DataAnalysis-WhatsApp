@@ -56,13 +56,15 @@ def fetch_stats(selected_user, df):
     # fetch the number of messages
     num_messages = df.shape[0]
 
-    # fetch the total number of words
-    words = []
-    temp = df[df['message'] != '<Media omitted>\n']
-    temp = temp[temp['user'] != 'group_notification']
-    for message in temp:
-        words.extend(message.split())
-
+    def words_collector(df):
+        # fetch the total number of words
+        words = []
+        df = df[df['message'] != '<Media omitted>\n']
+        df = df[df['user'] != 'group_notification']
+        for message in df['message']:
+            words.extend(message.split())
+        return words
+    words = words_collector(df)
     num_media = df[df['message'] == '<Media omitted>\n'].shape[0]
 
     links = []
@@ -88,11 +90,12 @@ def create_wordcloud(selected_user, df):
     file = file.read()
     def remove_stop_words(message):
         words = []
-        for i in message.lower().split():
-            i=i.strip()
+        for i in re.split(r'[:/ .,!"?>;(*~`]+', message.lower()):
+            if i in ['http','https','www']:
+                return ''
             if i not in file:
                 words.append(i)
-        return ''.join(words)
+        return ' '.join(words)
 
     df['message'] = df['message'].apply(remove_stop_words)
     wc = WordCloud(width=500,height=500,min_font_size=10,background_color='white')

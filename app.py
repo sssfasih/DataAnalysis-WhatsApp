@@ -1,5 +1,7 @@
+import pandas as pd
 import streamlit as st
 import helpers
+from matplotlib import pyplot as plt
 
 st.sidebar.title("Whatsapp Data Analysis")
 
@@ -38,7 +40,87 @@ if uploaded_file is not None:
             st.header("URLs Sent")
             st.title(len(urls))
 
+        st.title("Top Statistics")
+        #  Monthly Timeline
+        st.title("Monthly Timeline")
+        tl = helpers.monthly_timeline(selected_user,df)
+        fig, axis = plt.subplots()
+        axis.plot(tl['time'],tl['message'])
+        plt.xticks(rotation='vertical')
+        st.pyplot(fig)
 
+        #  Daily Timeline
+        st.title("Daily Timeline")
+        tl = helpers.daily_timeline(selected_user,df)
+        fig, axis = plt.subplots()
+        axis.plot(tl['only_date'],tl['message'])
+        plt.xticks(rotation='vertical')
+        st.pyplot(fig)
+
+        # activity map
+        st.title('Activity Map')
+        col1,col2 = st.columns(2)
+
+        with col1:
+            st.header("Most Active day")
+            busy_day = helpers.weekly_activity(selected_user,df)
+            fig,ax = plt.subplots()
+            ax.bar(busy_day.index,busy_day.values,color='purple')
+            plt.xticks(rotation='vertical')
+            st.pyplot(fig)
+
+        with col2:
+            st.header("Most Active month")
+            busy_month = helpers.monthly_activity(selected_user, df)
+            fig, ax = plt.subplots()
+            ax.bar(busy_month.index, busy_month.values,color='orange')
+            plt.xticks(rotation='vertical')
+            st.pyplot(fig)
+
+        if selected_user == "Overall":
+            col1, col2, = st.columns(2)
+            most_active,users_activity = helpers.get_activity(df)
+            fig, axis = plt.subplots()
+            with col1:
+                st.header("Active Users")
+                axis.bar(most_active.index, most_active.values)
+                plt.xticks(rotation='vertical')
+                st.pyplot(fig)
+
+            with col2:
+                st.header("Users Activity")
+                st.dataframe(users_activity)
+        # Activity Heatmap
+
+
+
+        df_wc = helpers.create_wordcloud(selected_user,df)
+        fig, axis = plt.subplots()
+        axis.imshow(df_wc)
+        st.pyplot(fig)
+
+        # most common list
+
+        common_words = helpers.most_common_words(selected_user, df)
+        common_words = pd.DataFrame(common_words)
+        fig, axis = plt.subplots()
+        axis.barh(common_words[0],common_words[1])
+        st.title("Most Common Words")
+        st.pyplot(fig)
+
+        # emoji
+
+        emoji_df = pd.DataFrame(helpers.emoji_counter(selected_user,df))
+
+        st.title("Emoji Analysis")
+        col1,col2 = st.columns(2)
+
+        with col1:
+            st.dataframe(emoji_df)
+        with col2:
+            fig,ax = plt.subplots()
+            ax.pie(emoji_df[1].head(),labels=emoji_df[0].head(),autopct="%0.2f")
+            st.pyplot(fig)
 
 
 

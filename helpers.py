@@ -1,6 +1,9 @@
 import re
 import pandas as pd
 from urlextract import URLExtract
+from wordcloud import WordCloud
+from collections import Counter
+import emoji
 
 def segregate_messages(df):
     users = []
@@ -32,6 +35,16 @@ def preprocessor(data):
     df['day_name'] = df['date'].dt.day_name()
     df['hour'] = df['date'].dt.hour
     df['minute'] = df['date'].dt.minute
+    period = []
+    for hour in df[['day_name', 'hour']]['hour']:
+        if hour == 23:
+            period.append(str(hour) + "-" + str('00'))
+        elif hour == 0:
+            period.append(str('00') + "-" + str(hour + 1))
+        else:
+            period.append(str(hour) + "-" + str(hour + 1))
+
+    df['period'] = period
 
     return df
 
@@ -45,7 +58,9 @@ def fetch_stats(selected_user, df):
 
     # fetch the total number of words
     words = []
-    for message in df['message']:
+    temp = df[df['message'] != '<Media omitted>\n']
+    temp = temp[temp['user'] != 'group_notification']
+    for message in temp:
         words.extend(message.split())
 
     num_media = df[df['message'] == '<Media omitted>\n'].shape[0]
@@ -55,5 +70,94 @@ def fetch_stats(selected_user, df):
     for i in df['message']:
         links.extend(extractor.find_urls(i))
 
-
     return num_messages, words,num_media,links
+
+def get_activity(df):
+    most_active = df['user'].value_counts().head()
+    users_activity = round((( df['user'].value_counts()/ df['user'].shape[0] )* 100),2).reset_index().rename(columns={'index':'name','user':'%'})
+    return most_active, users_activity
+
+def create_wordcloud(selected_user, df):
+    if selected_user != 'Overall':
+        df = df[df['user'] == selected_user]
+
+    df = df[df['message'] != '<Media omitted>\n']
+    df = df[df['user'] != 'group_notification']
+
+    file = open('stop_words_urdu_hindi_english.txt', 'r')
+    file = file.read()
+    def remove_stop_words(message):
+        words = []
+        for i in message.lower().split():
+            i=i.strip()
+            if i not in file:
+                words.append(i)
+        return ''.join(words)
+
+    df['message'] = df['message'].apply(remove_stop_words)
+    wc = WordCloud(width=500,height=500,min_font_size=10,background_color='white')
+    df_wc = wc.generate(df['message'].str.cat(sep=' '))
+    return df_wc
+
+def most_common_words(selected_user,df):
+    if selected_user != 'Overall':
+        df = df[df['user'] == selected_user]
+
+    df = df[df['message'] != '<Media omitted>\n']
+    df = df[df['user'] != 'group_notification']
+
+    file = open('stop_words_urdu_hindi_english.txt', 'r')
+    file = file.read()
+    words = []
+
+    for i in df['message']:
+        for j in i.lower().split():
+            if j not in file:
+                words.append(j)
+
+    return Counter(words).most_common(20)
+
+def emoji_counter(selected_user,df):
+    if selected_user != 'Overall':
+        df = df[df['user'] == selected_user]
+    emojis = []
+    for message in df['message']:
+        emojis.extend([c for c in message if emoji.is_emoji(c)])
+
+    return Counter(emojis).most_common(len(Counter(emojis)))
+
+def monthly_timeline(selected_user,df):
+    if selected_user != 'Overall':
+        df = df[df['user'] == selected_user]
+
+    tl = df.groupby(['year', 'month_num', 'month']).count()['message'].reset_index()
+
+    time = []
+    for i in range(tl.shape[0]):
+        time.append(tl['month'][i] + "-" + str(tl['year'][i]))
+
+    tl['time'] = time
+
+    return tl
+
+def daily_timeline(selected_user,df):
+    if selected_user != 'Overall':
+        df = df[df['user'] == selected_user]
+
+    tl = df.groupby('only_date').count()['message'].reset_index()
+
+    return tl
+
+def weekly_activity(selected_user,df):
+    if selected_user != 'Overall':
+        df = df[df['user'] == selected_user]
+
+    return df['day_name'].value_counts()
+
+
+def monthly_activity(selected_user, df):
+    if selected_user != 'Overall':
+        df = df[df['user'] == selected_user]
+
+    return df['month'].value_counts()
+

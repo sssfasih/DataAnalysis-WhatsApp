@@ -26,7 +26,7 @@ if uploaded_file is not None:
 
     if st.sidebar.button("Show analysis"):
         num_messages, words,num_media,urls = helpers.fetch_stats(selected_user, df)
-        st.title("Top Numbers")
+        st.title("What the numbers say...")
         col1, col2, col3, col4 = st.columns(4)
         with col1:
             st.header("Total Messages")
@@ -78,7 +78,7 @@ if uploaded_file is not None:
             plt.xticks(rotation='vertical')
             st.pyplot(fig)
 
-        st.title("Weekly Activity Map")
+        st.title("Activity Heat Map")
         fig, axis = plt.subplots()
         heatmap = sns.heatmap(helpers.activity_heatmap(selected_user, df))
         axis = heatmap
@@ -90,7 +90,7 @@ if uploaded_file is not None:
             fig, axis = plt.subplots()
             with col1:
                 st.header("Active Users")
-                axis.bar(most_active.index, most_active.values)
+                axis.bar(most_active.index, most_active.values,color='green')
                 plt.xticks(rotation='vertical')
                 st.pyplot(fig)
 
@@ -107,7 +107,7 @@ if uploaded_file is not None:
         common_words = helpers.most_common_words(selected_user, df)
         common_words = pd.DataFrame(common_words)
         fig, axis = plt.subplots()
-        axis.barh(common_words[0],common_words[1])
+        axis.barh(common_words[0],common_words[1],color='brown')
         st.title("Most Common Words")
         st.pyplot(fig)
 
@@ -122,8 +122,11 @@ if uploaded_file is not None:
             st.dataframe(emoji_df)
         with col2:
             fig,ax = plt.subplots()
-            ax.pie(emoji_df[1].head(),labels=emoji_df[0].head(),autopct="%0.2f")
-            st.pyplot(fig)
+            if emoji_df.empty:
+                st.text("No Emoji Data For Pie Chart")
+            else:
+                ax.pie(emoji_df[1].head(),labels=emoji_df[0].head(),autopct="%0.2f")
+                st.pyplot(fig)
 
 
 

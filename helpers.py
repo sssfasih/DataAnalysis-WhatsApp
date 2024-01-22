@@ -19,11 +19,29 @@ def segregate_messages(df):
     return users,messages
 
 def preprocessor(data):
-    pattern = '\d{1,2}\/\d{1,2}\/\d{2},\s\d{1,2}:\d{2}\s(?:AM|PM)'
+    pattern = '\d{1,2}\/\d{1,2}\/\d{2,4},\s\d{1,2}:\d{2}\s*(?:AM|PM|am|pm)'
     messages = re.split(pattern, data)[1:]
     dates = re.findall(pattern, data)
     df = pd.DataFrame({'user_message': messages, 'date': dates})
-    df['date'] = pd.to_datetime(df['date'], format='%m/%d/%y, %I:%M %p')
+    #print(dates)
+    x = list('%m/%d/%y, %I:%M %p')
+    # 4 digit year format
+    if '/' not in dates[0].split(',')[0][-4::]:
+        x[7]= 'Y'
+
+    #24 hours format
+    if dates[0].split(',')[1][-2::].lower() not in ['am','pm']:
+        x[11]= 'H'
+        x=x[:-3:]
+    x = ''.join(x)
+    try:
+        #mm/dd/yyyy fomrat
+        df['date'] = pd.to_datetime(df['date'], format=x)
+    except ValueError:
+        #dd/mm/yyyy format handling
+        z = list('%d/%m')+list(x)[5::]
+        x = ''.join(z)
+        df['date'] = pd.to_datetime(df['date'], format=x)
 
     df['user'] , df['message'] = segregate_messages(df)
     df.drop(columns=['user_message'], inplace=True)
